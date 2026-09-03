@@ -1,36 +1,64 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Olhar dos Três Picos
 
-## Getting Started
+Plataforma de monitoramento visual e meteorológico da região dos Três Picos
+(Mascarin, Nova Friburgo/RJ). Esta é a **primeira versão**: toda a câmera,
+estação meteorológica, previsão e status de infraestrutura são **dados
+simulados**, servidos por uma camada de providers pensada para ser trocada
+por integrações reais sem reescrever a interface.
 
-First, run the development server:
+## Stack
+
+- [Next.js](https://nextjs.org) (App Router) + TypeScript
+- [Tailwind CSS](https://tailwindcss.com) + [shadcn/ui](https://ui.shadcn.com)
+- [Recharts](https://recharts.org) (via `components/ui/chart`) para os gráficos
+- [next-themes](https://github.com/pacocoursey/next-themes) (tema escuro por padrão)
+- [Vitest](https://vitest.dev) + [Testing Library](https://testing-library.com) para testes
+
+## Rodando localmente
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Abra [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Script              | O que faz                          |
+| -------------------- | ----------------------------------- |
+| `npm run dev`         | Servidor de desenvolvimento         |
+| `npm run build`       | Build de produção                   |
+| `npm run start`       | Sobe o build de produção            |
+| `npm run lint`        | ESLint                              |
+| `npm run typecheck`   | `tsc --noEmit`                      |
+| `npm run test`        | Testes (Vitest)                     |
 
-## Learn More
+## Estrutura
 
-To learn more about Next.js, take a look at the following resources:
+```
+app/                  rotas (App Router)
+  page.tsx             dashboard "/"
+  historico/           placeholder
+  picos/               placeholder
+  timelapse/           placeholder
+  admin/               placeholder
+components/
+  dashboard/           componentes do dashboard
+  ui/                  shadcn/ui
+providers/             interfaces + implementações mock por domínio
+mocks/                 dados simulados centralizados
+db/schema.sql          schema conceitual (Postgres/Supabase, não aplicado)
+docs/                  arquitetura, planejamento, hardware
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Veja `docs/ARQUITETURA.md` para como a camada de providers funciona e
+`docs/PLANEJAMENTO.md` para o que vem depois desta primeira versão.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Dados simulados
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Nada aqui fala com hardware real. Presets de câmera "se movem" com um
+delay simulado, leituras meteorológicas e previsão vêm de geradores
+determinísticos em `mocks/`, e o status de infraestrutura é fixo. Isso é
+proposital — veja `docs/HARDWARE.md` para o que cada integração futura vai
+precisar antes de deixar de ser mock.
