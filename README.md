@@ -1,5 +1,8 @@
 # Olhar dos Três Picos
 
+[![Olhar dos Três Picos](https://img.shields.io/badge/repo-3picosaovivo-181717?logo=github)](https://github.com/darioonDev/3picosaovivo)
+[![Sentinela dos Três Picos](https://img.shields.io/badge/projeto_irmão-sentinela--tres--picos-181717?logo=github)](https://github.com/darioonDev/sentinela-tres-picos)
+
 Plataforma de monitoramento visual e meteorológico da região dos Três Picos
 (Mascarin, Nova Friburgo/RJ). Esta é a **primeira versão**: toda a câmera,
 estação meteorológica, previsão e status de infraestrutura são **dados
