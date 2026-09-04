@@ -9,39 +9,11 @@ import {
 } from "@/components/ui/chart";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { METRICS, RANGES, RANGE_LABELS, formatTick } from "@/lib/weather-metrics";
 import type { HistoricalPoint, HistoryRange } from "@/providers/weather/weather-provider";
 
 interface WeatherHistoryChartProps {
   data: Record<HistoryRange, HistoricalPoint[]>;
-}
-
-const RANGES: HistoryRange[] = ["24h", "7d", "30d"];
-
-const RANGE_LABELS: Record<HistoryRange, string> = {
-  "24h": "24 horas",
-  "7d": "7 dias",
-  "30d": "30 dias",
-};
-
-const METRICS: {
-  key: Exclude<keyof HistoricalPoint, "timestamp">;
-  label: string;
-  unit: string;
-  color: string;
-}[] = [
-  { key: "temperatureC", label: "Temperatura", unit: "°C", color: "var(--chart-1)" },
-  { key: "humidityPct", label: "Umidade", unit: "%", color: "var(--chart-2)" },
-  { key: "pressureHpa", label: "Pressão", unit: "hPa", color: "var(--chart-3)" },
-  { key: "windSpeedKmh", label: "Vento", unit: "km/h", color: "var(--chart-4)" },
-  { key: "rainMm", label: "Chuva", unit: "mm", color: "var(--chart-5)" },
-];
-
-function formatTick(range: HistoryRange, value: string) {
-  const date = new Date(value);
-  if (range === "24h") {
-    return date.toLocaleTimeString("pt-BR", { hour: "2-digit" });
-  }
-  return date.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
 }
 
 export function WeatherHistoryChart({ data }: WeatherHistoryChartProps) {

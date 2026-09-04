@@ -1,10 +1,15 @@
-import { ComingSoon } from "@/components/dashboard/coming-soon";
+import { HistoryView } from "@/components/history/history-view";
+import { getWeatherProvider } from "@/providers";
+import { RANGES } from "@/lib/weather-metrics";
+import type { HistoricalPoint, HistoryRange } from "@/providers/weather/weather-provider";
 
-export default function HistoricoPage() {
-  return (
-    <ComingSoon
-      title="Histórico meteorológico"
-      description="Consulta detalhada do histórico de temperatura, umidade, pressão, vento e chuva além do resumo já disponível no painel principal."
-    />
+export default async function HistoricoPage() {
+  const weatherProvider = getWeatherProvider();
+
+  const entries = await Promise.all(
+    RANGES.map(async (range) => [range, await weatherProvider.getHistoricalData(range)] as const)
   );
+  const data = Object.fromEntries(entries) as Record<HistoryRange, HistoricalPoint[]>;
+
+  return <HistoryView data={data} />;
 }
