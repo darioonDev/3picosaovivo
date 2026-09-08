@@ -10,6 +10,11 @@ import {
 } from "@/providers";
 import type { HistoricalPoint, HistoryRange } from "@/providers/weather/weather-provider";
 
+// Render per request so the live weather (and camera status) are fresh — the
+// WU fetch itself is cached 5 min, so the public key isn't hammered. Without
+// this the page prerenders at build time and bakes in stale/mock data.
+export const dynamic = "force-dynamic";
+
 const HISTORY_RANGES: HistoryRange[] = ["24h", "7d", "30d"];
 
 export default async function Page() {

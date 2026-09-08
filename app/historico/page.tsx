@@ -3,6 +3,9 @@ import { getWeatherProvider } from "@/providers";
 import { RANGES } from "@/lib/weather-metrics";
 import type { HistoricalPoint, HistoryRange } from "@/providers/weather/weather-provider";
 
+// Fetch live station history per request (the WU fetch is cached 5 min).
+export const dynamic = "force-dynamic";
+
 export default async function HistoricoPage() {
   const weatherProvider = getWeatherProvider();
 
