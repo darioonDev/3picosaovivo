@@ -16,6 +16,7 @@ interface CameraSectionProps {
   status: CameraStatus;
   initialPresets: CameraPreset[];
   conditions: CurrentConditions;
+  streamUrl?: string | null;
 }
 
 /**
@@ -27,6 +28,7 @@ export function CameraSection({
   status,
   initialPresets,
   conditions,
+  streamUrl,
 }: CameraSectionProps) {
   const [presets, setPresets] = useState(initialPresets);
   const [movingId, setMovingId] = useState<CameraPresetId | null>(null);
@@ -54,6 +56,7 @@ export function CameraSection({
         <LiveCameraViewer
           status={status}
           activePresetName={activePreset?.name ?? "Visão Geral"}
+          streamUrl={streamUrl}
         />
       </div>
       <div className="flex flex-col gap-6">

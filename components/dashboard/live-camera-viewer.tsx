@@ -1,10 +1,13 @@
 import { Signal, SignalZero } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import type { CameraStatus } from "@/providers/camera/camera-provider";
+import { HlsPlayer } from "./hls-player";
 
 interface LiveCameraViewerProps {
   status: CameraStatus;
   activePresetName: string;
+  /** HLS manifest URL for the live feed, or null to show the placeholder. */
+  streamUrl?: string | null;
 }
 
 function formatTime(iso: string) {
@@ -14,25 +17,30 @@ function formatTime(iso: string) {
 export function LiveCameraViewer({
   status,
   activePresetName,
+  streamUrl,
 }: LiveCameraViewerProps) {
-  const online = status.connectionStatus === "online";
+  const online = streamUrl ? true : status.connectionStatus === "online";
 
   return (
     <div className="overflow-hidden rounded-xl ring-1 ring-foreground/10">
       <div className="relative aspect-video w-full overflow-hidden bg-gradient-to-b from-slate-700 via-slate-900 to-black">
-        {/* Placeholder de montanha — não é imagem real da câmera. */}
-        <svg
-          viewBox="0 0 400 200"
-          preserveAspectRatio="none"
-          className="absolute inset-x-0 bottom-0 h-2/3 w-full text-black/70"
-          aria-hidden="true"
-        >
-          <path
-            fill="currentColor"
-            d="M0 200 L55 95 L100 145 L165 45 L225 125 L275 75 L335 150 L400 105 L400 200 Z"
-          />
-        </svg>
-        <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-black/25" />
+        {streamUrl ? (
+          <HlsPlayer src={streamUrl} />
+        ) : (
+          /* Placeholder de montanha — não é imagem real da câmera. */
+          <svg
+            viewBox="0 0 400 200"
+            preserveAspectRatio="none"
+            className="absolute inset-x-0 bottom-0 h-2/3 w-full text-black/70"
+            aria-hidden="true"
+          >
+            <path
+              fill="currentColor"
+              d="M0 200 L55 95 L100 145 L165 45 L225 125 L275 75 L335 150 L400 105 L400 200 Z"
+            />
+          </svg>
+        )}
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-black/25" />
 
         <div className="absolute top-4 left-4">
           <Badge

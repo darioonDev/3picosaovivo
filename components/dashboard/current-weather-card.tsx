@@ -25,7 +25,9 @@ export function CurrentWeatherCard({ conditions }: CurrentWeatherCardProps) {
       label: "Chuva",
       value: `${conditions.rainMmPerHour.toFixed(1)} mm/h`,
     },
-    { icon: Eye, label: "Visibilidade", value: `${conditions.visibilityKm} km` },
+    ...(conditions.visibilityKm != null
+      ? [{ icon: Eye, label: "Visibilidade", value: `${conditions.visibilityKm} km` }]
+      : []),
     ...(conditions.solarRadiationWm2 != null
       ? [
           {
@@ -42,7 +44,7 @@ export function CurrentWeatherCard({ conditions }: CurrentWeatherCardProps) {
       <CardHeader className="flex-row items-center justify-between">
         <CardTitle>Condições atuais</CardTitle>
         <Badge variant="secondary" className="font-mono text-[10px]">
-          observado (simulado) · {formatTime(conditions.observedAt)}
+          observado · {formatTime(conditions.observedAt)}
         </Badge>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">

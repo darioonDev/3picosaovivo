@@ -1,7 +1,7 @@
 import { mockCameraProvider } from "./camera/mock-camera-provider";
 import { mockForecastProvider } from "./forecast/mock-forecast-provider";
-import { mockStreamingProvider } from "./streaming/mock-streaming-provider";
-import { mockWeatherStationProvider } from "./weather/mock-weather-provider";
+import { hlsStreamingProvider } from "./streaming/hls-streaming-provider";
+import { wuWeatherStationProvider } from "./weather/wu-weather-provider";
 import type { CameraProvider } from "./camera/camera-provider";
 import type { ForecastProvider } from "./forecast/forecast-provider";
 import type { StreamingProvider } from "./streaming/streaming-provider";
@@ -18,7 +18,7 @@ export function getCameraProvider(): CameraProvider {
 }
 
 export function getWeatherProvider(): WeatherStationProvider {
-  return mockWeatherStationProvider;
+  return wuWeatherStationProvider;
 }
 
 export function getForecastProvider(): ForecastProvider {
@@ -26,7 +26,7 @@ export function getForecastProvider(): ForecastProvider {
 }
 
 export function getStreamingProvider(): StreamingProvider {
-  return mockStreamingProvider;
+  return hlsStreamingProvider;
 }
 
 export type {

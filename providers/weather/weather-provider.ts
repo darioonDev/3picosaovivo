@@ -9,7 +9,8 @@ export interface CurrentConditions {
   windDirection: string;
   pressureHpa: number;
   rainMmPerHour: number;
-  visibilityKm: number;
+  /** Not measured by the PWS — null when unavailable. */
+  visibilityKm: number | null;
   solarRadiationWm2: number | null;
 }
 

@@ -5,6 +5,7 @@ import { WeatherHistoryChart } from "@/components/dashboard/weather-history-char
 import {
   getCameraProvider,
   getForecastProvider,
+  getStreamingProvider,
   getWeatherProvider,
 } from "@/providers";
 import type { HistoricalPoint, HistoryRange } from "@/providers/weather/weather-provider";
@@ -15,21 +16,30 @@ export default async function Page() {
   const cameraProvider = getCameraProvider();
   const weatherProvider = getWeatherProvider();
   const forecastProvider = getForecastProvider();
+  const streamingProvider = getStreamingProvider();
 
-  const [cameraStatus, presets, currentConditions, hourlyForecast, dailyForecast, historyEntries] =
-    await Promise.all([
-      cameraProvider.getStatus(),
-      cameraProvider.getPresets(),
-      weatherProvider.getCurrentConditions(),
-      forecastProvider.getHourlyForecast(),
-      forecastProvider.getDailyForecast(),
-      Promise.all(
-        HISTORY_RANGES.map(async (range) => [
-          range,
-          await weatherProvider.getHistoricalData(range),
-        ] as const)
-      ),
-    ]);
+  const [
+    cameraStatus,
+    presets,
+    currentConditions,
+    hourlyForecast,
+    dailyForecast,
+    historyEntries,
+    streamUrl,
+  ] = await Promise.all([
+    cameraProvider.getStatus(),
+    cameraProvider.getPresets(),
+    weatherProvider.getCurrentConditions(),
+    forecastProvider.getHourlyForecast(),
+    forecastProvider.getDailyForecast(),
+    Promise.all(
+      HISTORY_RANGES.map(async (range) => [
+        range,
+        await weatherProvider.getHistoricalData(range),
+      ] as const)
+    ),
+    streamingProvider.getPlaybackUrl(),
+  ]);
 
   const historicalData = Object.fromEntries(historyEntries) as Record<
     HistoryRange,
@@ -42,6 +52,7 @@ export default async function Page() {
         status={cameraStatus}
         initialPresets={presets}
         conditions={currentConditions}
+        streamUrl={streamUrl}
       />
 
       <ForecastCard hours={hourlyForecast} days={dailyForecast} />
