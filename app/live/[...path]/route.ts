@@ -7,23 +7,26 @@ import "server-only";
  * browser fetches the manifest/segments from THIS origin (/live/*) and the
  * server fetches them from the gateway (server-to-server, no mixed-content).
  *
- * HLS_UPSTREAM overrides the gateway base URL; it defaults to the project's
- * VPS gateway so the stream works with zero config.
+ * The gateway base URL comes from /admin (falling back to HLS_UPSTREAM, then
+ * to the project's VPS gateway so the stream works with zero config). Read per
+ * request so an admin change applies without a redeploy — it used to be a
+ * module-scope constant, which only picked up changes on restart.
  */
-const UPSTREAM = process.env.HLS_UPSTREAM || "http://177.7.39.222:8888";
+import { getSiteConfig } from "@/lib/config/resolve";
 
 export async function GET(
   _request: Request,
   { params }: { params: Promise<{ path: string[] }> }
 ) {
-  if (!UPSTREAM) {
-    return new Response("HLS_UPSTREAM not configured.", { status: 503 });
+  const { hlsUpstream } = await getSiteConfig();
+  if (!hlsUpstream) {
+    return new Response("Gateway HLS não configurado.", { status: 503 });
   }
 
   const { path } = await params;
   // Guard against path traversal; only forward simple segment/manifest names.
   const safe = path.filter((p) => p !== ".." && p !== ".").join("/");
-  const target = `${UPSTREAM.replace(/\/$/, "")}/${safe}`;
+  const target = `${hlsUpstream.replace(/\/$/, "")}/${safe}`;
 
   let upstream: Response;
   try {

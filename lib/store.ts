@@ -1,5 +1,6 @@
 import "server-only";
 
+import { randomBytes } from "node:crypto";
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { CAMERA_PRESETS } from "@/mocks/camera";
@@ -7,24 +8,19 @@ import { SEED_ALERTS } from "@/mocks/alerts";
 import type { CameraPreset } from "@/providers/camera/camera-provider";
 
 /**
- * Server-side JSON store for admin-managed state: general settings, camera
- * presets, and weather alerts. It's the source of truth the admin panel
- * writes to and the dashboard/pages read from, so edits actually take effect
- * across the app (the reading pages are dynamic).
+ * Server-side JSON store for admin-managed state: camera presets and weather
+ * alerts. It's the source of truth the admin panel writes to and the
+ * dashboard/pages read from, so edits actually take effect across the app
+ * (the reading pages are dynamic).
+ *
+ * General settings used to live here too; they moved to the field registry in
+ * lib/config/, which writes the "settings" branch of the SAME file. Both sides
+ * read-modify-write the whole document, so neither clobbers the other.
  *
  * Seeded from the mocks on first read. Persisted to STORE_PATH — set that to
  * a path OUTSIDE the deploy directory on Hostinger so admin changes survive
  * redeploys. server-only keeps this out of the client bundle.
  */
-
-export interface SiteSettings {
-  siteName: string;
-  tagline: string;
-  locationLabel: string;
-  cameraName: string;
-  cameraResolution: string;
-  updateIntervalSeconds: number;
-}
 
 export type AlertSeverity = "info" | "warning" | "critical";
 
@@ -38,23 +34,12 @@ export interface WeatherAlert {
 }
 
 export interface AdminState {
-  settings: SiteSettings;
   presets: CameraPreset[];
   alerts: WeatherAlert[];
 }
 
-export const DEFAULT_SETTINGS: SiteSettings = {
-  siteName: "Olhar dos Três Picos",
-  tagline: "Monitoramento visual e meteorológico das montanhas",
-  locationLabel: "Mascarin • Nova Friburgo • RJ",
-  cameraName: "Câmera PTZ — Mascarin",
-  cameraResolution: "1920×1080 (simulado)",
-  updateIntervalSeconds: 60,
-};
-
 function defaultState(): AdminState {
   return {
-    settings: { ...DEFAULT_SETTINGS },
     presets: CAMERA_PRESETS.map((p) => ({ ...p, position: { ...p.position } })),
     alerts: SEED_ALERTS.map((a) => ({ ...a })),
   };
@@ -64,34 +49,52 @@ function storePath(): string {
   return process.env.STORE_PATH || path.join(process.cwd(), "olhar-data.json");
 }
 
-async function readState(): Promise<AdminState> {
-  const base = defaultState();
+/** The whole document, including the "settings" branch lib/config/ owns. */
+async function readFile(): Promise<Record<string, unknown>> {
   try {
-    const raw = await fs.readFile(storePath(), "utf8");
-    const parsed = JSON.parse(raw) as Partial<AdminState>;
-    return {
-      settings: { ...base.settings, ...(parsed.settings ?? {}) },
-      presets: Array.isArray(parsed.presets) ? parsed.presets : base.presets,
-      alerts: Array.isArray(parsed.alerts) ? parsed.alerts : base.alerts,
-    };
+    // turbopackIgnore: the store lives OUTSIDE the deploy directory by design.
+    const raw = await fs.readFile(/*turbopackIgnore: true*/ storePath(), "utf8");
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === "object" ? (parsed as Record<string, unknown>) : {};
   } catch {
-    return base;
+    return {};
   }
 }
 
+async function readState(): Promise<AdminState> {
+  const base = defaultState();
+  const file = await readFile();
+  return {
+    presets: Array.isArray(file.presets) ? (file.presets as CameraPreset[]) : base.presets,
+    alerts: Array.isArray(file.alerts) ? (file.alerts as WeatherAlert[]) : base.alerts,
+  };
+}
+
+/**
+ * Writes only the presets/alerts branches, preserving "settings" and "_auth".
+ * Written atomically (tmp + rename) so a crash mid-write cannot truncate the
+ * file and silently reset everything.
+ */
 async function writeState(state: AdminState): Promise<void> {
+  const file = await readFile();
+  file.presets = state.presets;
+  file.alerts = state.alerts;
+
   const target = storePath();
   await fs.mkdir(path.dirname(target), { recursive: true });
-  await fs.writeFile(target, JSON.stringify(state, null, 2), "utf8");
+  const tmp = `${target}.${randomBytes(6).toString("hex")}.tmp`;
+  try {
+    await fs.writeFile(tmp, JSON.stringify(file, null, 2), "utf8");
+    await fs.rename(tmp, target);
+  } catch (error) {
+    await fs.unlink(tmp).catch(() => {});
+    throw error;
+  }
 }
 
 // ---- Reads ----
 export async function getState(): Promise<AdminState> {
   return readState();
-}
-
-export async function getSettings(): Promise<SiteSettings> {
-  return (await readState()).settings;
 }
 
 export async function getPresets(): Promise<CameraPreset[]> {
@@ -100,26 +103,6 @@ export async function getPresets(): Promise<CameraPreset[]> {
 
 export async function getAlerts(): Promise<WeatherAlert[]> {
   return (await readState()).alerts;
-}
-
-// ---- Settings ----
-export async function saveSettings(patch: Partial<SiteSettings>): Promise<void> {
-  const state = await readState();
-  state.settings = { ...state.settings, ...sanitizeSettings(patch) };
-  await writeState(state);
-}
-
-function sanitizeSettings(patch: Partial<SiteSettings>): Partial<SiteSettings> {
-  const out: Partial<SiteSettings> = {};
-  if (typeof patch.siteName === "string") out.siteName = patch.siteName.trim();
-  if (typeof patch.tagline === "string") out.tagline = patch.tagline.trim();
-  if (typeof patch.locationLabel === "string") out.locationLabel = patch.locationLabel.trim();
-  if (typeof patch.cameraName === "string") out.cameraName = patch.cameraName.trim();
-  if (typeof patch.cameraResolution === "string")
-    out.cameraResolution = patch.cameraResolution.trim();
-  if (typeof patch.updateIntervalSeconds === "number" && patch.updateIntervalSeconds > 0)
-    out.updateIntervalSeconds = Math.round(patch.updateIntervalSeconds);
-  return out;
 }
 
 // ---- Presets (CRUD) ----
@@ -173,6 +156,20 @@ function uniqueId(base: string, presets: CameraPreset[]): string {
     if (!ids.has(candidate)) return candidate;
   }
   return `${base}-${Date.now()}`;
+}
+
+/** Mark one preset active and the rest idle, persisting the change. */
+export async function setPresetActive(id: string): Promise<CameraPreset | null> {
+  const state = await readState();
+  const target = state.presets.find((p) => p.id === id);
+  if (!target) return null;
+
+  state.presets = state.presets.map((p) => ({
+    ...p,
+    status: p.id === id ? "active" : "idle",
+  }));
+  await writeState(state);
+  return { ...target, status: "active" };
 }
 
 export async function deletePreset(id: string): Promise<void> {

@@ -3,6 +3,12 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getCameraProvider } from "@/providers";
 
+// Presets come from the admin store, and the header from the settings file.
+// Reading a file is not a "dynamic API" as far as Next is concerned, so
+// without this the page would prerender at build time and serve the seeded
+// presets and a stale header forever.
+export const dynamic = "force-dynamic";
+
 export default async function PicosPage() {
   const presets = await getCameraProvider().getPresets();
 
