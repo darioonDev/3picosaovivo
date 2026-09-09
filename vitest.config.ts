@@ -7,6 +7,11 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "."),
+      // The real package throws on import outside a Server Component, which is
+      // exactly its job in the app and exactly what stops a server-only module
+      // being unit tested. Next enforces that boundary at build time; here we
+      // stub it so the registry's own rules can be asserted.
+      "server-only": path.resolve(__dirname, "vitest.server-only-stub.ts"),
     },
   },
   test: {

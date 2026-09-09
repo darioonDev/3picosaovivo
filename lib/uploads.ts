@@ -6,11 +6,12 @@ import path from "node:path";
 import { settingsPath } from "@/lib/config/resolve";
 
 /**
- * Storage for images uploaded through the admin panel. Twin of
- * camera-24h/lib/uploads.ts.
+ * Storage for images uploaded through the admin panel. Shared verbatim with
+ * the twin repository — see scripts/check-shared.mjs.
  *
- * Files land beside the store file — i.e. OUTSIDE the deploy directory,
- * wherever STORE_PATH points — so they survive a redeploy. They cannot go
+ * Files land beside this app's settings file — i.e. OUTSIDE the deploy
+ * directory, wherever settingsPath() resolves to — so they survive a redeploy.
+ * They cannot go
  * in public/: with output: "standalone" that folder is copied at build time
  * and anything written there at runtime is never served.
  *

@@ -15,16 +15,17 @@ compartilham o mesmo **padrão** de configuração, copiado deliberadamente em v
 de extraído para um pacote: cada repo é publicado com `git archive` + build na
 Hostinger, então uma dependência `file:` não sobreviveria ao deploy.
 
-Mantidos estruturalmente idênticos nos dois lados:
+Rode **`npm run check:shared`** ao mexer nessa camada. Ele compara os arquivos
+gêmeos e distingue dois grupos:
 
-- `lib/config/kinds.ts` — tipos dos campos e a lista de seções
-- `lib/config/schema.ts` — o registro declarativo (campos diferentes, mesma máquina)
-- `lib/config/resolve.ts` — resolução painel → env → padrão, e a gravação atômica
-- `lib/admin-auth.ts` — senha em hash scrypt, cookie assinado, versão de sessão
-- `lib/uploads.ts` — upload de imagens ao lado do arquivo de estado
-- `app/api/admin/*` e `app/api/asset/[name]` — as rotas do painel
+- **idênticos** — devem bater byte a byte; qualquer diferença falha o comando.
+  São `lib/uploads.ts`, `lib/config/schema.test.ts`, as rotas de login, senha,
+  upload e `asset/[name]`, e o stub do vitest.
+- **paralelos** — divergem por natureza (a lista de campos em `schema.ts`, o
+  formato do arquivo de estado em `resolve.ts`, o nome do cookie em
+  `admin-auth.ts`). O comando só mostra o tamanho da diferença, para uma
+  divergência inesperada saltar aos olhos.
 
-Ao mexer em qualquer um deles, **verifique se a mudança cabe no outro repo
-também**. O que diverge por natureza: a lista de campos em `schema.ts`, o
-formato do arquivo de estado, e toda a camada de UI (CSS Modules aqui,
-Tailwind + shadcn no outro).
+Ao corrigir um bug num arquivo do grupo "idênticos", **porte para o outro repo
+no mesmo trabalho**. O que sempre diverge é a camada de UI: CSS Modules aqui,
+Tailwind + shadcn no outro — essa não é comparada.
