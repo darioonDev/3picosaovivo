@@ -11,6 +11,9 @@ export default defineConfig({
   },
   test: {
     environment: "jsdom",
+    // next build copies the sources into .next/standalone, so without this
+    // every test file is collected and run a second time from there.
+    exclude: ["node_modules/**", ".next/**"],
     setupFiles: ["./vitest.setup.ts"],
     globals: true,
   },
