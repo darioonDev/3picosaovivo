@@ -222,10 +222,18 @@ export async function getSectionFields(section: SectionId): Promise<FieldView[]>
   );
 }
 
-/** Sections that currently have at least one field, in menu order. */
+/**
+ * Sections to show in the menu, in order: those with at least one registry
+ * field, plus those that exist only for a custom panel (alerts is fields-free
+ * but has a full CRUD screen).
+ */
+const CUSTOM_PANEL_SECTIONS: readonly SectionId[] = ["alerts"];
+
 export function getAvailableSections(): SectionId[] {
   const present = new Set(FIELD_ENTRIES.map(([, field]) => field.section));
-  return SECTIONS.filter((s) => present.has(s.id)).map((s) => s.id);
+  return SECTIONS.filter(
+    (s) => present.has(s.id) || CUSTOM_PANEL_SECTIONS.includes(s.id)
+  ).map((s) => s.id);
 }
 
 /**

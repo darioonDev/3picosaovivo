@@ -1,4 +1,6 @@
 import { AdminLogin } from "@/components/admin/admin-login";
+import { AlertsPanel } from "@/components/admin/alerts-panel";
+import { PresetsPanel } from "@/components/admin/presets-panel";
 import { AdminNav } from "@/components/admin/admin-nav";
 import { LogoutButton } from "@/components/admin/logout-button";
 import { SecurityPanel } from "@/components/admin/security-panel";
@@ -12,6 +14,7 @@ import {
 } from "@/lib/admin-auth";
 import { SECTIONS, type SectionId } from "@/lib/config/kinds";
 import { getAvailableSections, getSectionFields } from "@/lib/config/resolve";
+import { getAlerts, getPresets } from "@/lib/store";
 import { isWritable } from "@/lib/uploads";
 
 export const dynamic = "force-dynamic";
@@ -66,16 +69,25 @@ export default async function AdminPage(props: PageProps<"/admin">) {
 
         <Card>
           <CardContent className="flex flex-col gap-5 pt-6">
-            {/* key remounts the form on section change so its local state
-                never carries over from the previous section. */}
-            <SectionForm
-              key={active}
-              section={active}
-              title={meta.label}
-              blurb={meta.blurb}
-              fields={fields}
-              canUpload={await isWritable()}
-            />
+            {/* Alerts is a fields-free section: it exists purely for its own
+                CRUD panel, so it skips the generic form entirely. */}
+            {active === "alerts" ? (
+              <AlertsPanel alerts={await getAlerts()} />
+            ) : (
+              <>
+                {/* key remounts the form on section change so its local state
+                    never carries over from the previous section. */}
+                <SectionForm
+                  key={active}
+                  section={active}
+                  title={meta.label}
+                  blurb={meta.blurb}
+                  fields={fields}
+                  canUpload={await isWritable()}
+                />
+                {active === "camera" && <PresetsPanel presets={await getPresets()} />}
+              </>
+            )}
             {active === "security" && (
               <SecurityPanel
                 hasStoredPassword={await hasStoredPassword()}

@@ -10,13 +10,19 @@
  * they are kept structurally identical instead, on purpose.
  */
 
-/** Left-hand menu of /admin. Every field declares which one it belongs to. */
-export type SectionId = "camera" | "station" | "identity" | "security";
+/**
+ * Left-hand menu of /admin. Every field declares which one it belongs to.
+ *
+ * A section may also exist purely for a custom panel with no registry fields —
+ * "alerts" is one — so the menu is not derived from the field list alone.
+ */
+export type SectionId = "camera" | "station" | "identity" | "alerts" | "security";
 
 export const SECTIONS: readonly { id: SectionId; label: string; blurb: string }[] = [
   { id: "camera", label: "Câmera", blurb: "Transmissão ao vivo e presets" },
   { id: "station", label: "Estação", blurb: "Weather Underground e leituras" },
   { id: "identity", label: "Identidade", blurb: "Marca, textos e SEO" },
+  { id: "alerts", label: "Alertas", blurb: "Avisos meteorológicos" },
   { id: "security", label: "Segurança", blurb: "Senha, backup e diagnóstico" },
 ];
 
