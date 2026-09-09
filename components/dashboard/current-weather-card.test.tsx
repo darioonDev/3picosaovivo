@@ -16,7 +16,7 @@ const CONDITIONS: CurrentConditions = {
 };
 
 describe("CurrentWeatherCard", () => {
-  it("renders the observed metrics and marks them as simulated", () => {
+  it("renders the observed metrics with the observation time", () => {
     render(<CurrentWeatherCard conditions={CONDITIONS} />);
 
     expect(screen.getByText("Condições atuais")).toBeInTheDocument();
@@ -24,7 +24,9 @@ describe("CurrentWeatherCard", () => {
     expect(screen.getByText("87%")).toBeInTheDocument();
     expect(screen.getByText("14 km/h NE")).toBeInTheDocument();
     expect(screen.getByText("892 hPa")).toBeInTheDocument();
-    expect(screen.getByText(/observado \(simulado\)/)).toBeInTheDocument();
+    // The card used to be labelled "(simulado)"; it shows the real observation
+    // time now that the Weather Underground provider is wired up.
+    expect(screen.getByText(/^observado ·/)).toBeInTheDocument();
   });
 
   it("hides the solar radiation tile when the reading is unavailable", () => {

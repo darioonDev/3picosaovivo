@@ -7,6 +7,10 @@ import {
   type TimelapseStatus,
 } from "@/mocks/timelapse";
 
+// The gallery itself is still example data, but the shared header now comes
+// from the settings file — prerendering would bake in a stale one.
+export const dynamic = "force-dynamic";
+
 const STATUS: Record<
   TimelapseStatus,
   { label: string; className: string }

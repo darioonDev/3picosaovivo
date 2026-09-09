@@ -3,29 +3,57 @@ import { Badge } from "@/components/ui/badge";
 
 interface DashboardHeaderProps {
   live?: boolean;
+  siteName: string;
+  tagline: string;
+  locationLabel: string;
+  eyebrow: string;
+  logoUrl: string;
+  /** Raw "Label|/path" entries from the panel. */
+  navItems: string[];
 }
 
-const NAV_LINKS = [
-  { href: "/", label: "Ao vivo" },
-  { href: "/historico", label: "Histórico" },
-  { href: "/picos", label: "Picos" },
-  { href: "/timelapse", label: "Timelapse" },
-];
+/** "Rótulo|/caminho" → a link. A missing path falls back to "/". */
+function parseNavItem(entry: string): { label: string; href: string } | null {
+  const [label, href] = entry.split("|");
+  const trimmed = label?.trim();
+  if (!trimmed) return null;
+  return { label: trimmed, href: href?.trim() || "/" };
+}
 
-export function DashboardHeader({ live = true }: DashboardHeaderProps) {
+export function DashboardHeader({
+  live = true,
+  siteName,
+  tagline,
+  locationLabel,
+  eyebrow,
+  logoUrl,
+  navItems,
+}: DashboardHeaderProps) {
+  const links = navItems.map(parseNavItem).filter((l) => l !== null);
+
   return (
     <header className="flex flex-col gap-4 border-b border-border px-4 py-4 sm:px-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex flex-col gap-1">
-          <span className="font-mono text-[11px] uppercase tracking-[0.25em] text-muted-foreground">
-            Centro de monitoramento
-          </span>
-          <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">
-            OLHAR DOS TRÊS PICOS
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            Monitoramento visual e meteorológico das montanhas
-          </p>
+        <div className="flex items-center gap-3">
+          {logoUrl && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={logoUrl}
+              alt={siteName}
+              className="size-10 flex-none object-contain"
+            />
+          )}
+          <div className="flex flex-col gap-1">
+            {eyebrow && (
+              <span className="font-mono text-[11px] uppercase tracking-[0.25em] text-muted-foreground">
+                {eyebrow}
+              </span>
+            )}
+            <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">
+              {siteName}
+            </h1>
+            {tagline && <p className="text-sm text-muted-foreground">{tagline}</p>}
+          </div>
         </div>
         <div className="flex flex-col items-start gap-2 sm:items-end">
           <Badge
@@ -43,22 +71,26 @@ export function DashboardHeader({ live = true }: DashboardHeaderProps) {
             />
             {live ? "AO VIVO" : "OFFLINE"}
           </Badge>
-          <span className="font-mono text-xs text-muted-foreground">
-            Mascarin • Nova Friburgo • RJ
-          </span>
+          {locationLabel && (
+            <span className="font-mono text-xs text-muted-foreground">
+              {locationLabel}
+            </span>
+          )}
         </div>
       </div>
-      <nav className="flex items-center gap-5 font-mono text-xs uppercase tracking-wide text-muted-foreground">
-        {NAV_LINKS.map((link) => (
-          <Link
-            key={link.href}
-            href={link.href}
-            className="transition-colors hover:text-foreground"
-          >
-            {link.label}
-          </Link>
-        ))}
-      </nav>
+      {links.length > 0 && (
+        <nav className="flex items-center gap-5 font-mono text-xs uppercase tracking-wide text-muted-foreground">
+          {links.map((link) => (
+            <Link
+              key={`${link.label}-${link.href}`}
+              href={link.href}
+              className="transition-colors hover:text-foreground"
+            >
+              {link.label}
+            </Link>
+          ))}
+        </nav>
+      )}
     </header>
   );
 }

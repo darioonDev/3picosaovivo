@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { getCameraProvider } from "@/providers";
+import { gotoPresetAction } from "@/app/actions/camera";
 import type {
   CameraPreset,
   CameraPresetId,
@@ -40,7 +40,7 @@ export function CameraSection({
     if (isPending) return;
     setMovingId(id);
     startTransition(async () => {
-      const updated = await getCameraProvider().gotoPreset(id);
+      const updated = await gotoPresetAction(id);
       setPresets((prev) =>
         prev.map((preset) =>
           preset.id === updated.id ? updated : { ...preset, status: "idle" }

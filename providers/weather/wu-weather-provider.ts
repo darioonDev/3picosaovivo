@@ -1,3 +1,4 @@
+import { getSiteConfig } from "@/lib/config/resolve";
 import { CURRENT_CONDITIONS, generateHistoricalData } from "@/mocks/weather";
 import type {
   CurrentConditions,
@@ -18,7 +19,6 @@ import type {
 const API_BASE = "https://api.weather.com/v2/pws";
 // Public key embedded in WU's own dashboard frontend — not a secret.
 const WU_PUBLIC_DASHBOARD_KEY = "e1f10a1e78da46f5b10a1e78da96f525";
-const STATION_ID = process.env.WU_STATION_ID || "INOVAF30";
 
 const COMPASS_PT = ["N", "NE", "L", "SE", "S", "SO", "O", "NO"];
 function degToCompass(deg: number | null | undefined): string {
@@ -52,12 +52,17 @@ interface WuResponse {
 }
 
 async function fetchWu(path: string): Promise<WuResponse | null> {
-  const key = process.env.WU_API_KEY || WU_PUBLIC_DASHBOARD_KEY;
+  // Read per request, not at module scope: these are admin settings now, and a
+  // module-scope read would only pick up a change after a process restart.
+  const { wuApiKey, wuStationId } = await getSiteConfig();
+  const key = wuApiKey || WU_PUBLIC_DASHBOARD_KEY;
   const url =
-    `${API_BASE}/${path}?stationId=${encodeURIComponent(STATION_ID)}` +
+    `${API_BASE}/${path}?stationId=${encodeURIComponent(wuStationId)}` +
     `&format=json&units=m&apiKey=${encodeURIComponent(key)}`;
   try {
-    const res = await fetch(url, { next: { revalidate: 300 } });
+    // The URL embeds the API key, so a fetch cache would key on it and change
+    // behaviour the moment a key is configured. No caching here.
+    const res = await fetch(url, { cache: "no-store" });
     if (!res.ok) return null;
     return (await res.json()) as WuResponse;
   } catch {
