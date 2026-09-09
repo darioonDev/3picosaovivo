@@ -11,6 +11,7 @@ interface Diagnostics {
   bytes: number;
   writable: boolean;
   overridden: string[];
+  insideDeployDir: boolean;
 }
 
 type Msg = { ok: boolean; text: string } | null;
@@ -281,6 +282,16 @@ export function SecurityPanel({
         </p>
       )}
 
+      {diag?.insideDeployDir && (
+        <p className="rounded-md border border-red-500/50 bg-red-500/10 px-3 py-2 text-xs leading-relaxed text-red-200">
+          Este caminho fica <strong>dentro da pasta publicada</strong>: tudo que
+          for salvo aqui é apagado na próxima publicação do site. Defina a
+          variável de ambiente <code>STORE_PATH</code> apontando para fora dela
+          — por exemplo <code>/home/SEU_USUARIO/olhar-data/olhar-data.json</code>
+          — e as imagens enviadas acompanham o mesmo diretório.
+        </p>
+      )}
+
       {diag && (
         <dl className="mt-4 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 rounded-md border border-border bg-muted/40 p-3 font-mono text-xs">
           <dt className="text-muted-foreground">Arquivo</dt>
@@ -289,6 +300,10 @@ export function SecurityPanel({
           </dd>
           <dt className="text-muted-foreground">Existe</dt>
           <dd className="m-0">{diag.exists ? `sim (${diag.bytes} bytes)` : "ainda não gravado"}</dd>
+          <dt className="text-muted-foreground">Sobrevive à publicação</dt>
+          <dd className={diag.insideDeployDir ? "m-0 text-red-400" : "m-0 text-emerald-400"}>
+            {diag.insideDeployDir ? "NÃO — está dentro da pasta publicada" : "sim"}
+          </dd>
           <dt className="text-muted-foreground">Gravável</dt>
           <dd className={diag.writable ? "m-0 text-emerald-400" : "m-0 text-red-400"}>
             {diag.writable ? "sim" : "NÃO — o painel não conseguirá salvar"}
