@@ -131,6 +131,14 @@ export function SectionForm({
   );
 }
 
+/**
+ * Whether blanking this field is even possible. A checkbox or a select always
+ * has a value, so telling the operator what "blank" does there is noise.
+ */
+function canBeBlank(field: FieldView): boolean {
+  return !["secret", "boolean", "select"].includes(field.kind);
+}
+
 function FieldRow({
   field,
   value,
@@ -234,7 +242,7 @@ function FieldRow({
       )}
 
       {field.hint && <Hint>{field.hint}</Hint>}
-      {field.kind !== "secret" && !field.emptiable && (
+      {canBeBlank(field) && !field.emptiable && (
         <p className="text-[11px] leading-relaxed text-muted-foreground/70">
           {field.env
             ? `Em branco: volta a usar a variável ${field.env}.`
