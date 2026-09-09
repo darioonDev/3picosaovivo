@@ -40,9 +40,13 @@
    forte, tempestade se aproximando, geada).
 10. **Monitoramento de infraestrutura real** — telemetria de internet,
     energia solar/bateria substituindo `mocks/system-status.ts`.
-11. **`/admin`** — CRUD de presets, configurações (`settings`) e
+11. ~~**`/admin`** — CRUD de presets, configurações (`settings`) e
     reconhecimento de alertas; precisa de autenticação antes de sair do
-    placeholder.
+    placeholder.~~ **Feito.** O painel tem login por senha, menu por seções
+    (Câmera, Estação, Identidade, Segurança) e grava num registro de campos
+    (`lib/config/`) com precedência sobre as variáveis de ambiente. Presets
+    saíram do mock e vêm do store; a rota de alertas existe
+    (`app/api/admin/alerts`). Falta só uma UI de alertas no painel.
 
 ## Fora de escopo por enquanto
 

@@ -69,10 +69,11 @@ Servidor/CDN
 Navegador
 ```
 
-`StreamingProvider.getPlaybackUrl()` é o ponto de entrada para isso — hoje
-sempre retorna `null` porque não existe pipeline HLS real. Quando existir,
-essa função passa a devolver a URL do manifesto HLS, e `LiveCameraViewer`
-troca o placeholder por um player de vídeo de verdade.
+`StreamingProvider.getPlaybackUrl()` é o ponto de entrada para isso. **Já está
+ligado no real**: devolve o manifesto configurado em `/admin` (padrão
+`/live/stream.m3u8`), servido pelo proxy same-origin `app/live/[...path]`, que
+puxa do gateway RTSP→HLS no VPS. `LiveCameraViewer` toca esse stream com
+hls.js — o placeholder só aparece quando o gateway está fora do ar.
 
 ## Banco de dados
 
@@ -81,6 +82,24 @@ domínios pedidos, mas **não está aplicado a nenhum projeto** — não há
 Supabase provisionado nesta fase, e nada no app lê de um banco. É o alvo
 para quando os providers pararem de ser mock.
 
+## Configuração em tempo de execução
+
+`lib/config/` é um **registro declarativo de campos**: cada configuração é uma
+entrada com tipo, rótulo, ajuda, variável de ambiente de fallback e validador.
+Dele saem a resolução (painel → env → padrão), a validação do POST, a projeção
+pública e os metadados que o formulário do `/admin` renderiza — adicionar uma
+configuração é acrescentar uma entrada.
+
+Os valores ficam na chave `settings` do mesmo arquivo JSON que guarda presets e
+alertas (`lib/store.ts`), mais `_auth` com o hash da senha. Os dois lados fazem
+read-modify-write do documento inteiro, então nenhum sobrescreve o outro.
+
+Como as páginas leem esse arquivo por requisição, **todas as rotas são
+dinâmicas** (`force-dynamic`) — inclusive `/picos` e `/timelapse`, que antes
+eram estáticas. Ler arquivo não conta como "dynamic API" para o Next, então a
+diretiva é explícita; sem ela a página serviria HTML do build com o cabeçalho e
+os presets congelados.
+
 ## Segurança
 
 Nenhuma credencial (chave de API, senha, URL RTSP privada) existe no
@@ -88,6 +107,12 @@ frontend nesta fase porque não existe integração real ainda. Quando
 existir: chaves e URLs privadas ficam em variáveis de ambiente lidas só em
 código server-side (route handlers, Server Actions) — nunca em um
 Client Component, nunca em `NEXT_PUBLIC_*`.
+
+Isso agora é estrutural, não só disciplina: campos marcados `secret` ou
+`serverOnly` no registro são removidos por construção da projeção que chega ao
+browser, e os providers são `server-only` — um Client Component que os importe
+quebra o build. Por isso o movimento de preset passa por uma Server Action
+(`app/actions/camera.ts`) em vez de chamar o provider direto.
 
 ## Decisões técnicas
 
