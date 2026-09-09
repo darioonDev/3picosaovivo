@@ -26,6 +26,7 @@ const twin = path.resolve(repo, "..", twinName);
 
 const IDENTICAL = [
   "lib/config/schema.test.ts",
+  "lib/config/paths.test.ts",
   "lib/uploads.ts",
   "app/api/admin/login/route.ts",
   "app/api/admin/password/route.ts",

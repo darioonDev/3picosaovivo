@@ -292,7 +292,35 @@ export async function getDiagnostics() {
   const stored = await readStored();
   const overridden = FIELD_ENTRIES.filter(([key]) => key in stored).map(([key]) => key);
 
-  return { settingsPath: target, exists, bytes, writable, overridden };
+  return {
+    settingsPath: target,
+    exists,
+    bytes,
+    writable,
+    overridden,
+    // The default path sits inside the app directory, which the deploy
+    // replaces wholesale — everything saved there is silently lost on the
+    // next publish. That default is a trap, so say so plainly instead of
+    // hoping someone remembers to set the variable.
+    insideDeployDir: isInsideDeployDir(target),
+    appDir: path.resolve(process.cwd()),
+  };
+}
+
+/**
+ * True when the resolved path lives under the running application directory.
+ * Compared on normalised paths with a trailing separator, so a sibling folder
+ * whose name merely starts the same ("<app>-data") is not mistaken for being
+ * inside the app.
+ */
+export function isInsideDeployDir(target: string): boolean {
+  // Normalise to NFC before comparing. macOS hands back decomposed paths from
+  // process.cwd() while an env var arrives composed, so two paths that print
+  // identically ("Três") can differ byte for byte and fail startsWith.
+  const norm = (p: string) => path.resolve(p).normalize("NFC");
+  const app = norm(process.cwd());
+  const resolved = norm(target);
+  return resolved === app || resolved.startsWith(app + path.sep);
 }
 
 /** Everything the operator has set, for the export/backup action. Secrets redacted. */
