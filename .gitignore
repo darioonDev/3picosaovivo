@@ -32,6 +32,13 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
+
+# runtime state written by the admin panel (settings, presets, alerts)
+olhar-data.json
+# images uploaded through the admin panel (only when STORE_PATH is left
+# at its default, inside the project; in production it points outside)
+uploads/
 
 # vercel
 .vercel
