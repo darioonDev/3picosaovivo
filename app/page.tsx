@@ -1,3 +1,4 @@
+import { AlertsBanner } from "@/components/dashboard/alerts-banner";
 import { CameraSection } from "@/components/dashboard/camera-section";
 import { ForecastCard } from "@/components/dashboard/forecast-card";
 import { SystemStatusPanel } from "@/components/dashboard/system-status-panel";
@@ -8,6 +9,7 @@ import {
   getStreamingProvider,
   getWeatherProvider,
 } from "@/providers";
+import { getAlerts } from "@/lib/store";
 import type { HistoricalPoint, HistoryRange } from "@/providers/weather/weather-provider";
 
 // Render per request so the live weather (and camera status) are fresh — the
@@ -46,6 +48,8 @@ export default async function Page() {
     streamingProvider.getPlaybackUrl(),
   ]);
 
+  const alerts = await getAlerts();
+
   const historicalData = Object.fromEntries(historyEntries) as Record<
     HistoryRange,
     HistoricalPoint[]
@@ -53,6 +57,8 @@ export default async function Page() {
 
   return (
     <div className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-6 sm:px-6">
+      <AlertsBanner alerts={alerts} />
+
       <CameraSection
         status={cameraStatus}
         initialPresets={presets}
